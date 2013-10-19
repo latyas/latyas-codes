@@ -1,13 +1,13 @@
 #!/usr/bin/python
 #coding=utf-8
 
-import urllib
+import urllib2
 import sys
 from bs4 import BeautifulSoup
 import re 
 
 def etymology(key):
-	page = urllib.urlopen("http://www.etymonline.com/index.php?term=" + key).read().decode("utf-8")
+	page = urllib2.urlopen("http://www.etymonline.com/index.php?term=" + key).read().decode("utf-8")
 	if 'No matching terms found.' in page:
 		return None
 	try:

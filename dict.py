@@ -1,7 +1,7 @@
 #!/usr/bin/python
 #coding=utf-8
 
-import urllib
+import urllib2
 import sys
 import re
 import bs4
@@ -15,7 +15,7 @@ def main():
                 isen = True
             else:
                 isen = False
-            xmls = urllib.urlopen('http://dict.cn/' + urllib.quote(word)).read()
+            xmls = urllib2.urlopen('http://dict.cn/' + word).read()
 
             if isen == True:
                 rem = re.compile(r'<li><span>(?P<test>.*?)</strong></li>')

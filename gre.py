@@ -1,13 +1,13 @@
 #!/usr/bin/python
 #coding=utf-8
 
-import urllib
+import urllib2
 import re
 import sys
 from bs4 import BeautifulSoup
 
 def get_context(key):
-    ret = urllib.urlopen('http://www.merriam-webster.com/dictionary/%s' % key).read().decode("utf-8")
+    ret = urllib2.urlopen('http://www.merriam-webster.com/dictionary/%s' % key).read().decode("utf-8")
     soup = BeautifulSoup(ret)
     foo = soup.findAll(attrs={"class":"scnt"})
     return str(foo)
