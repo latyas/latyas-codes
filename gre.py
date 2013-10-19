@@ -23,18 +23,11 @@ if __name__ == '__main__':
     foo = bs.findAll(attrs={'class':'scnt'})
     for j,i in enumerate(foo):
         i = str(i)
-        i = re.subn('<div.*?>','',i)[0]
-        i = re.subn('<span.*?>','',i)[0]
-        i = re.subn('<strong.*?>','',i)[0]
+        i = re.subn('<(div|span|strong|em|a).*?>','',i)[0]
+        i = re.subn('<sup.*?>.*?</sup>','',i)[0]
         i = i.replace(r'&lt;','')
         i = i.replace(r'&gt','')
-        i = i.replace(r'</strong>','')
-        i = i.replace(r'</span>','')
-        i = i.replace(r'</em>','')
-        i = i.replace(r'</div>','\n ')
-        i = re.subn('<a.*?>','',i)[0]
-        i = re.subn('<em.*?>','',i)[0]
-        i = i.replace('</a>','')
+        i = re.sub(r'</(strong|span|em|div|a)>','',i)
         i = i.replace('Â','')
         i = ' ' + i
         i = i.replace(r'  ','')
