@@ -25,8 +25,8 @@ def str2url(s):
     output = urllib2.unquote(output).replace('^', '0')
     return output
     
-username = 'xxx'
-password = 'xxx'
+username = 'emailhere'
+password = 'passwordhere'
 axel_opts = '-n20'
 login_url = 'https://login.xiami.com/member/login'
 song_prefix = 'http://www.xiami.com/song/gethqsong/sid/'
