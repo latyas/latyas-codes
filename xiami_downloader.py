@@ -4,6 +4,7 @@ import urllib2
 import json
 from bs4 import BeautifulSoup
 import os
+import sys
 
 def str2url(s):
     num_loc = s.find('h')
@@ -24,10 +25,12 @@ def str2url(s):
         output += new_s[p]
     output = urllib2.unquote(output).replace('^', '0')
     return output
-    
+
+reload(sys)
+sys.setdefaultencoding('utf-8')
 username = 'xxx'
 password = 'xxx'
-axel_opts = '-n20'
+axel_opts = '-n20 -q'
 login_url = 'https://login.xiami.com/member/login'
 song_prefix = 'http://www.xiami.com/song/gethqsong/sid/'
 album_id = raw_input('ALBUM ID:')
@@ -46,7 +49,7 @@ bs = BeautifulSoup(songlist.text)
 album_title = bs.find(attrs={'property':'v:itemreviewed'}).contents[0].replace('\'','')
 
 try:
-    os.system('mkdir "%s"' % album_title)
+    os.system('mkdir \'%s\'' % album_title)
 except:
     pass
 
@@ -59,7 +62,6 @@ for i in bs.findAll('td',attrs={'class':'song_name'}):
     
     #print song_name,song_id,song_url
     print 'Downloading %s' % song_name
-    command = 'axel %s -q --user-agent="Mozilla/5.0" %s -o \'%s/%s.mp3\'' % (axel_opts,song_url,album_title,song_name)    
-    ret = os.system(command)
-    if ret != 0:
-        print 'Downloading %s failed' % song_name
+    command = 'axel %s --user-agent="Mozilla/5.0" %s -o \'%s/%s.mp3\'' % (axel_opts,song_url,album_title,song_name)      
+    os.system(command)
+
