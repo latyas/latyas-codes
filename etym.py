@@ -12,12 +12,8 @@ def etymology(key):
         return None
     try:
         soup = BeautifulSoup(page)
-        foo = soup.findAll('div', id='dictionary')
-        rep = re.compile('<img.*"/>?')
-        ret = rep.sub('',str(foo[0]))
-        ret = ret.replace('</div>','')
-        ret = ret.replace('<div id="dictionary">','')
-        
+        foo = soup.findAll('div', id='dictionary')[0]
+        ret = foo.text
         return ret
     except:
         pass
@@ -29,15 +25,10 @@ if __name__ == '__main__':
         sys.exit(1)
     foo = etymology(sys.argv[1])
     if foo:
-        foo = re.sub('<a .*?>.*?</a>','',foo)
-        foo = re.sub('<(dt|dl|dd|span|br).*?>','',foo)
-        foo = re.sub('</(dt|dl|dd|span)>','',foo)
-
         foo = foo.replace('\n\n','')
         foo += '\n'
         print foo
         #log
-
         date = '%d-%d-%d' % (time.localtime().tm_year,time.localtime().tm_mon,time.localtime().tm_mday)
         try:
         	f = open(os.path.expanduser("~/") + 'etym.log','r+')
