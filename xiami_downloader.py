@@ -54,7 +54,7 @@ try:
 except:
     pass
 print 'Downloading album cover ...'
-os.system('curl \'%s\' > %s/cover.jpg' % (album_photo, album_title))
+os.system('curl \'%s\' > \'%s/cover.jpg\'' % (album_photo, album_title))
 for i in bs.findAll('td',attrs={'class':'song_name'}):
     link = i.findAll('a')[0]
     song_name = link.contents[0].replace('\'','')
