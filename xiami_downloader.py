@@ -47,12 +47,14 @@ ret = req.post(login_url,data=data,headers=header)
 songlist = req.get('http://www.xiami.com/album/' + album_id,headers=header)
 bs = BeautifulSoup(songlist.text)
 album_title = bs.find(attrs={'property':'v:itemreviewed'}).contents[0].replace('\'','')
+album_photo = bs.find('div',attrs={'id':'album_cover'}).find('img').get('src').replace('_2','')
 
 try:
     os.system('mkdir \'%s\'' % album_title)
 except:
     pass
-
+print 'Downloading album cover ...'
+os.system('curl \'%s\' > %s/cover.jpg' % (album_photo, album_title))
 for i in bs.findAll('td',attrs={'class':'song_name'}):
     link = i.findAll('a')[0]
     song_name = link.contents[0].replace('\'','')
