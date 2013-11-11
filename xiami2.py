@@ -56,8 +56,8 @@ reload(sys)
 sys.setdefaultencoding('utf-8')
 
 
-username = ''
-password = ''
+username = 'test@yopmail.com'
+password = '19920330'
 axel_opts = '-n5'
 login_url = 'https://login.xiami.com/member/login'
 data = {'email':username,
@@ -77,6 +77,7 @@ if hq: set_320k(req) # set quality to 320kbps
 foo = req.get('http://www.xiami.com/song/playlist/id/%s/type/%s' % (album,list_type),headers={'user-agent':'Mozilla/5.0'}).text
 data = xmltodict.parse(foo)['playlist']['trackList']['track']
 
+delete_all = False
 for i in data:
     if not os.path.exists(i['album_name']):
         print 'Creating folder'
@@ -91,5 +92,11 @@ for i in data:
         url = xiami(json.loads(req.get('http://www.xiami.com/song/gethqsong/sid/' + i['song_id'],headers=header).text)['location'])
     print 'Downloading',i['title']
     if os.path.exists('%s/%s.mp3' % (i['album_name'],i['title'])):
-        os.system('rm \'%s/%s.mp3\'' % (i['album_name'],i['title']))
+        foofoo = raw_input('%s existed, delete?(for any key jumping, enter yes to delete, enter ALL (upper) to delete all existed)' % i['title'])
+        if foofoo == 'yes' or delete_all:
+            if foofoo == 'ALL':
+                delete_all = True
+            os.system('rm \'%s/%s.mp3\'' % (i['album_name'],i['title']))
+        else:
+            continue
     os.system('axel -n5 --user-agent="Mozilla/5.0" %s -o \'%s\'' % (url, '%s/%s' %(i['album_name'],file_name)))
