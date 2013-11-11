@@ -13,6 +13,8 @@ import os
 from BeautifulSoup import BeautifulSoup
 import json
 
+def text_validate(text):
+    return text.replace('\'','').replace('\\','').replace('/','')
 def set_320k(s):
     url = 'http://www.xiami.com/vip/myvip'
     header = {'user-agent':'Mozilla/5.0'}
@@ -49,7 +51,7 @@ def xiami(s):
     output += ''.join(sucks)
     return urllib2.unquote(output).replace('^','0')
 
-if len(sys.argv) != 3:
+if len(sys.argv) < 3:
     print 'Usage:%s ALBUM_ID TYPE\n\talbum type:1 \t user-list type:3' % (sys.argv[0])
     sys.exit(0)
 reload(sys)
@@ -78,25 +80,32 @@ foo = req.get('http://www.xiami.com/song/playlist/id/%s/type/%s' % (album,list_t
 data = xmltodict.parse(foo)['playlist']['trackList']['track']
 
 delete_all = False
+
+if len(sys.argv) == 4:
+    if sys.argv[3] == '--overwrite':
+        delete_all = True
+        
 for i in data:
-    if not os.path.exists(i['album_name']):
+    if not os.path.exists(text_validate(i['album_name'])):
         print 'Creating folder'
-        os.system('mkdir \'%s\'' % i['album_name'].replace('\'',''))
-    if not os.path.exists('%s/cover.jpg' % (i['album_name'])):
+        os.system('mkdir \'%s\'' % text_validate(i['album_name']))
+    if not os.path.exists('%s/cover.jpg' % (text_validate(i['album_name']))):
         print 'Downloading cover ...'
-        os.system('curl \'%s\' > \'%s/cover.jpg\'' % (i['pic'].replace('_1',''), i['album_name']))
-    file_name = i['title'].replace('\'','') + '.mp3'
+        os.system('curl \'%s\' > \'%s/cover.jpg\'' % (i['pic'].replace('_1',''), text_validate(i['album_name'])))
+    file_name = text_validate(i['title']) + '.mp3'
     if not hq:
         url = xiami(i['location'])
     else:
         url = xiami(json.loads(req.get('http://www.xiami.com/song/gethqsong/sid/' + i['song_id'],headers=header).text)['location'])
     print 'Downloading',i['title']
-    if os.path.exists('%s/%s.mp3' % (i['album_name'],i['title'])):
-        foofoo = raw_input('%s existed, delete?(for any key jumping, enter yes to delete, enter ALL (upper) to delete all existed)' % i['title'])
-        if foofoo == 'yes' or delete_all:
-            if foofoo == 'ALL':
-                delete_all = True
-            os.system('rm \'%s/%s.mp3\'' % (i['album_name'],i['title']))
-        else:
-            continue
-    os.system('axel -n5 --user-agent="Mozilla/5.0" %s -o \'%s\'' % (url, '%s/%s' %(i['album_name'],file_name)))
+    if os.path.exists('%s/%s.mp3' % (text_validate(i['album_name']),text_validate(i['title']))):
+        if not delete_all:
+            foofoo = raw_input('%s existed, delete?(for any key jumping, enter yes to delete, enter ALL (upper) to delete all existed)' % i['title'])
+            if foofoo == 'yes':
+                if foofoo == 'ALL':
+                    delete_all = True
+            else:
+                print '********************** skipped *************************'
+                continue
+        os.system('rm \'%s/%s.mp3\'' % (text_validate(i['album_name']),text_validate(i['title'])))
+    os.system('axel -n5 --user-agent="Mozilla/5.0" %s -o \'%s\'' % (url, '%s/%s' %(text_validate(i['album_name']),file_name)))
