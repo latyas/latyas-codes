@@ -101,10 +101,9 @@ for i in data:
     if os.path.exists('%s/%s.mp3' % (text_validate(i['album_name']),text_validate(i['title']))):
         if not delete_all:
             foofoo = raw_input('%s existed, delete?(for any key jumping, enter yes to delete, enter ALL (upper) to delete all existed)' % i['title'])
-            if foofoo == 'yes':
-                if foofoo == 'ALL':
-                    delete_all = True
-            else:
+            if foofoo == 'ALL':
+               delete_all = True
+            if foofoo != 'yes' and foofoo != 'ALL':
                 print '********************** skipped *************************'
                 continue
         os.system('rm \'%s/%s.mp3\'' % (text_validate(i['album_name']),text_validate(i['title'])))
