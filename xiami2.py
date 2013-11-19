@@ -16,8 +16,8 @@ from BeautifulSoup import BeautifulSoup
 import json
 import getopt
 
-username = 'test@yopmail.com'
-password = '19920330'
+username = ''
+password = ''
 axel_opts = '-n5'
 
 def text_validate(text):
