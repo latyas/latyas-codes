@@ -5,6 +5,8 @@ Created on Fri Nov  1 20:33:08 2013
 @author: latyas
 """
 
+# NOT FINISHED YET
+
 import xmltodict
 import requests 
 import sys
@@ -12,6 +14,11 @@ import urllib2
 import os
 from BeautifulSoup import BeautifulSoup
 import json
+import getopt
+
+username = 'test@yopmail.com'
+password = '19920330'
+axel_opts = '-n5'
 
 def text_validate(text):
     return text.replace('\'','').replace('\\','').replace('/','')
@@ -51,60 +58,126 @@ def xiami(s):
     output += ''.join(sucks)
     return urllib2.unquote(output).replace('^','0')
 
-if len(sys.argv) < 3:
-    print 'Usage:%s ALBUM_ID TYPE\n\talbum type:1 \t user-list type:3' % (sys.argv[0])
-    sys.exit(0)
-reload(sys)
-sys.setdefaultencoding('utf-8')
+
+def usage():
+    print '''Usage: %s --type=album/songlist [--remove] [--320k] [--onefolder] listid
+                 --remove: delete file if existing.
+                 --320k: download 320kbps first (VIP needed) 
+                 --onefolder: all musics will be downloaded in one folder "songlist_listid", if type equals songlist''' % (sys.argv[0])
+    
+
+def exception():
+    usage()
+    sys.exit(1)
+
+def login(s):
+    header = {'user-agent':'Mozilla/5.0'}
+    login_url = 'https://login.xiami.com/member/login'
+    data = {'email':username,
+            'password':password,
+            'done':'http://www.xiami.com/account',
+            'submit':'登 录'
+    }
+    ret = s.post(login_url,data=data,headers=header)
+
+def download(s,album_type,id):
+    global arg_remove,arg_onefolder
+
+    foo = s.get('http://www.xiami.com/song/playlist/id/%s/type/%s' % (id,album_type),headers={'user-agent':'Mozilla/5.0'}).text
+    data = xmltodict.parse(foo)['playlist']['trackList']['track']
+
+    delete_all = arg_remove
+    
+    if arg_onefolder == True:
+        if not os.path.exists('songlist_%s' % id):
+            print 'Creating folder'
+            os.system('mkdir \'%s\'' % ('songlist_%s' % id))
+
+    for i in data:
+
+        if arg_onefolder != True:
+            folder = text_validate(i['album_name'])
+
+            if not os.path.exists(folder):
+                print 'Creating folder'
+                os.system('mkdir \'%s\'' % folder)
+            if not os.path.exists('%s/cover.jpg' % (folder)):
+                print 'Downloading cover ...'
+                os.system('curl \'%s\' > \'%s/cover.jpg\'' % (i['pic'].replace('_1',''), folder))           
+        else:
+            folder = 'songlist_%s' % id
+
+        if not hq:
+            url = xiami(i['location'])
+        else:
+            url = xiami(json.loads(s.get('http://www.xiami.com/song/gethqsong/sid/' + i['song_id'],headers=header).text)['location'])
+        print 'Downloading',i['title']
+        if os.path.exists('%s/%s.mp3' % (folder,text_validate(i['title']))):
+
+            if not delete_all:
+                foofoo = raw_input('%s existed, delete?(for any key jumping, enter yes to delete, enter ALL (upper) to delete all existed)' % i['title'])
+                if foofoo == 'ALL':
+                   delete_all = True
+                if foofoo != 'yes' and foofoo != 'ALL':
+                    print '********************** skipped *************************'
+                    continue
+
+            os.system('rm \'%s/%s.mp3\'' % (folder,text_validate(i['title'])))
+        os.system('axel -n5 --user-agent="Mozilla/5.0" %s -o \'%s\'' % (url, '%s/%s.mp3' %(folder,text_validate(i['title']))))
 
 
-username = 'test@yopmail.com'
-password = '19920330'
-axel_opts = '-n5'
-login_url = 'https://login.xiami.com/member/login'
-data = {'email':username,
-        'password':password,
-        'done':'http://www.xiami.com/account',
-        'submit':'登 录'
-}
-header = {'user-agent':'Mozilla/5.0'}
-hq = True #high quality? need VIP
-album = sys.argv[1]
-list_type = sys.argv[2]
 
 
-req = requests.session()
-ret = req.post(login_url,data=data,headers=header)
-if hq: set_320k(req) # set quality to 320kbps
-foo = req.get('http://www.xiami.com/song/playlist/id/%s/type/%s' % (album,list_type),headers={'user-agent':'Mozilla/5.0'}).text
-data = xmltodict.parse(foo)['playlist']['trackList']['track']
 
-delete_all = False
+if __name__ == '__main__':
+    reload(sys)
+    sys.setdefaultencoding('utf-8')
 
-if len(sys.argv) == 4:
-    if sys.argv[3] == '--overwrite':
-        delete_all = True
-        
-for i in data:
-    if not os.path.exists(text_validate(i['album_name'])):
-        print 'Creating folder'
-        os.system('mkdir \'%s\'' % text_validate(i['album_name']))
-    if not os.path.exists('%s/cover.jpg' % (text_validate(i['album_name']))):
-        print 'Downloading cover ...'
-        os.system('curl \'%s\' > \'%s/cover.jpg\'' % (i['pic'].replace('_1',''), text_validate(i['album_name'])))
-    file_name = text_validate(i['title']) + '.mp3'
-    if not hq:
-        url = xiami(i['location'])
-    else:
-        url = xiami(json.loads(req.get('http://www.xiami.com/song/gethqsong/sid/' + i['song_id'],headers=header).text)['location'])
-    print 'Downloading',i['title']
-    if os.path.exists('%s/%s.mp3' % (text_validate(i['album_name']),text_validate(i['title']))):
-        if not delete_all:
-            foofoo = raw_input('%s existed, delete?(for any key jumping, enter yes to delete, enter ALL (upper) to delete all existed)' % i['title'])
-            if foofoo == 'ALL':
-               delete_all = True
-            if foofoo != 'yes' and foofoo != 'ALL':
-                print '********************** skipped *************************'
-                continue
-        os.system('rm \'%s/%s.mp3\'' % (text_validate(i['album_name']),text_validate(i['title'])))
-    os.system('axel -n5 --user-agent="Mozilla/5.0" %s -o \'%s\'' % (url, '%s/%s' %(text_validate(i['album_name']),file_name)))
+    arg_remove = False
+    arg_lists = []
+    arg_type = ''
+    hq = False #high quality switch
+    arg_onefolder = False
+
+    opts,args = getopt.getopt(sys.argv[1:],'h',['remove','type=','help','320k','onefolder'])
+    foo = [i[0] for i in opts]
+    if '--type' not in foo or args == []:
+        exception()
+    try:
+        for o,v in opts:
+            if o == '--remove':
+                arg_remove = True
+            elif o == '--type' and v != '':
+                if v == 'album':
+                    arg_type = '1'
+                elif v == 'songlist':
+                    arg_type = '3'
+                else:
+                    exception()
+            elif o == '--320k':
+                hq = True
+            elif o == '--onefolder' and ('--type','3') in opts:
+                arg_onefolder = True
+            elif o == '--help':
+                exception()
+            else:
+                exception()
+        # song list
+        arg_lists.extend(args)
+    except:
+        exception()
+
+    header = {'user-agent':'Mozilla/5.0'}
+    album = sys.argv[1]
+    list_type = sys.argv[2]
+
+    req = requests.session()
+
+    login(req)
+    if hq:
+        set_320k(req) # set quality to 320kbps
+
+
+    for i in arg_lists:
+        print 'starting download id:%s' % i
+        download(req,arg_type,i)
