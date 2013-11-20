@@ -16,7 +16,7 @@ from BeautifulSoup import BeautifulSoup
 import json
 import getopt
 
-username = ''
+username = 'test@yopmail.com'
 password = ''
 axel_opts = '-n5'
 
@@ -143,29 +143,29 @@ if __name__ == '__main__':
     foo = [i[0] for i in opts]
     if '--type' not in foo or args == []:
         exception()
-    try:
-        for o,v in opts:
-            if o == '--remove':
-                arg_remove = True
-            elif o == '--type' and v != '':
-                if v == 'album':
-                    arg_type = '1'
-                elif v == 'songlist':
-                    arg_type = '3'
-                else:
-                    exception()
-            elif o == '--320k':
-                hq = True
-            elif o == '--onefolder' and ('--type','3') in opts:
-                arg_onefolder = True
-            elif o == '--help':
-                exception()
+
+    for o,v in opts:
+        if o == '--remove':
+            arg_remove = True
+        elif o == '--type' and v != '':
+            if v == 'album':
+                arg_type = '1'
+            elif v == 'songlist':
+                arg_type = '3'
             else:
                 exception()
-        # song list
-        arg_lists.extend(args)
-    except:
-        exception()
+        elif o == '--320k':
+            hq = True
+        elif o == '--onefolder' and ('--type','songlist') in opts:
+            arg_onefolder = True
+        elif o == '--help':
+            exception()
+        else:
+            print 'unrecognized argument',o
+            exception()
+    # song list
+    arg_lists.extend(args)
+
 
     header = {'user-agent':'Mozilla/5.0'}
     album = sys.argv[1]
