@@ -7,6 +7,8 @@ import re
 import bs4
 import os
 import time
+import json
+from urllib import unquote
 
 def main():
     if len(sys.argv) == 2:
@@ -17,13 +19,23 @@ def main():
                 isen = True
             else:
                 isen = False
-            xmls = urllib2.urlopen('http://dict.cn/' + word).read()
+            url = 'http://dict.cn/' + word.replace(' ','%20')
+            xmls = urllib2.urlopen(url).read()
             trans = ''
             if isen == True:
                 rem = re.compile(r'<li><span>(?P<test>.*?)</strong></li>')
                 for i in rem.findall(xmls):
                     print i.replace('</span><strong>','')
                     trans += i.replace('</span><strong>','') + ' | '
+                bs = bs4.BeautifulSoup(xmls)
+                foo = bs.findAll('div',attrs={'id':'dict-chart-basic'})[0]
+                jdata = json.loads(unquote(foo.get('data')))
+                print 
+                for i in jdata.values():
+                    print '%s:%s%% |' % (i['sense'],i['percent']),
+                print
+
+
             else:
                 bs = bs4.BeautifulSoup(xmls)
                 foo = str(bs.findAll(attrs={'class':'layout cn'})[0])
@@ -32,7 +44,10 @@ def main():
                     print j+1,i
                     trans += i + ' | '
         except:
-            print 'Not found.'
+            print '%s Not found.' % sys.argv[1]
+            return
+        if trans == '':
+            print '%s Not found.' % sys.argv[1]
             return
         #log
 
@@ -54,4 +69,3 @@ def help():
 
 if __name__ == '__main__':
     main()
-
