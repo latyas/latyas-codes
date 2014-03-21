@@ -4,19 +4,25 @@
 import urllib2
 import sys,os
 from bs4 import BeautifulSoup
-import re 
+import re
 import time
+
+def process_text(text):
+    r = re.compile('<a.*?>(.*?)</a>')
+    return r.sub("\\x1b[31;43;1m\\1\\x1b[0m",text)
+
 def etymology(key):
     page = urllib2.urlopen("http://www.etymonline.com/index.php?term=" + key).read().decode("utf-8")
     if 'No matching terms found.' in page:
         return None
-    try:
-        soup = BeautifulSoup(page)
-        foo = soup.findAll('div', id='dictionary')[0]
-        ret = foo.text
-        return ret
-    except:
-        pass
+    soup = BeautifulSoup(page)
+    foo = soup.findAll('div', id='dictionary')
+    foo = foo[0].findAll('dd')
+    foo = '\n'.join([''.join(map(str,bar.contents)) for bar in foo])
+    foo = process_text(foo)
+    foo = BeautifulSoup(foo).text
+    foo = foo.replace(r'\x1b','\x1b')
+    return foo
     return None
 
 if __name__ == '__main__':
@@ -25,19 +31,6 @@ if __name__ == '__main__':
         sys.exit(1)
     foo = etymology(sys.argv[1])
     if foo:
-        foo = foo.replace('\n\n','')
-        foo += '\n'
         print foo
-        #log
-        date = '%d-%d-%d' % (time.localtime().tm_year,time.localtime().tm_mon,time.localtime().tm_mday)
-        try:
-        	f = open(os.path.expanduser("~/") + 'etym.log','r+')
-        except:
-        	open(os.path.expanduser("~/") + 'etym.log','w').close()
-        	f = open(os.path.expanduser("~/") + 'etym.log','r+')
-        if not date in f.read():
-            f.writelines(date + '\n')
-        f.writelines('[%s]\n%s\n\n\n' % (sys.argv[1],foo))
-        f.close()
     else:
         print 'Not Found'
